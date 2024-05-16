@@ -1,26 +1,7 @@
-import os #os är ett bra filhantering program som nästan funkar exakt som terminalen eller saker som t.ex. linux
- # datetime låter den kunna få åtkomst till 
+import os 
 from datetime import datetime 
+import sys
 #funktion som tar tillbaka till meny
-def main():
-        while True:
-            main=int(input('För att gå tillbaka till meny tryck "1" och för stänga tryck "0": '))
-            if main not in [1,0]:
-                print('Fel input')
-                os.system("cls||clear")
-                continue
-            else:
-                return main 
-FIL='packlistorC.txt'
-try:
-    print('Detekterar filen ...')
-    with open(FIL):
-        pass
-except FileNotFoundError:
-    with open(FIL,'a') as f:
-        print('Filen hittades inte. Skapas nu')
-        f.close()
-            
 #Lägger objekt i self.objekt och sedan med addObject funktion kan man sätta in de saker som kommer att läggas.
 class Packlistor: 
     def __init__(self):
@@ -30,59 +11,81 @@ class Packlistor:
     def addObject(self, objekt):
         self.object_list.append(objekt)
 
-pack=Packlistor()
+def controller():
+        while True:
+            controller=int(input('För att gå tillbaka till meny tryck "1" och för stänga tryck "0": '))
+            if controller not in [1,0]:
+                print('Fel input')
+                os.system("cls||clear")
+                continue
+            elif controller == 0:
+                sys.exit('Programmet avslutar ...')
+            else:
+                return controller 
 
+try:
+    print('Detekterar filen ...')
+    with open('packlistorC.txt'):
+        pass
+except FileNotFoundError:
+    with open('packlistorC.txt','a', encoding="utf-8") as f:
+        print('Filen hittades inte. Skapas nu')
+        f.close()
+        
+print('Text fil hitaddes: packlistorC.txt\n')
+          
 #upprepar meny tills lagrad giltig input
 while True:  
-    print(f'Text fil hitaddes :{FIL}\n')
+    pack=Packlistor()
+    
+    FIL="packlistorC.txt"
+    ENCODING="UTF-8"
+    
     print('---> N Ny packlista')
-    print('---> I Visa innehål i lista')
+    print('---> Enter Visa innehål i lista')
     print('---> S lägg till en sak i en lista')
     print('---> X Avsluta.')
 
-    button= input('Tryck en av kommando: ').lower() #stora bokstäver blir erkänd som gemen
+    button=input('Tryck en av kommando: ').lower() #stora bokstäver blir erkänd som gemen
     
     os.system("cls||clear")
     #os.system skriver in i terminalen och rensa den, så det kommer inte upp två meny i skärm 
     if button == 'n':
-
-        beskrivning = input('Plats och kort beskrivning? ')
+        beskrivning = 'Packlista; '+ input('Plats och kort beskrivning? ').capitalize()
         n = int(input('Hur många objekt?'))
-
-        pack.object_list = [] 
-
+        
         for i in range(n):
             föremål = input('Skriv varje enskild föremål och tryck enter: ')
             pack.addObject(föremål)  
 
         pack_str = ', '.join(pack.object_list)  
-
+        print(' ')
         time = input('Vilken tid (HH:MM)? ')
-        month_given = int(input('Vilken månad (skriv i MM)? '))
+        print(' ')
+        month_given = int(input('Vilken månad (skriv i MM)?'))
+        print(' ')
         given_day = int(input('Vilken dag (skriv i DD)? '))
-        given_year = int(input('Vilken år (skriv i ÅÅÅÅ)? '))
+        print(' ')
+        given_year = int(input('Vilken år (skriv i ÅÅÅÅ)?'))
+        print(' ')
         
-        with open(FIL, 'w') as f:
-            f.write(f"{beskrivning} {given_year}-{month_given}-{given_day} {time}:\n {pack_str}")
-            print('ny packlistan ',f"{beskrivning} skapades {given_year}-{month_given}-{given_day} {time}:\n{pack_str}")
+        with open(FIL, 'a',encoding=ENCODING) as f:
+            f.write(f"{beskrivning} {given_year}-{month_given}-{given_day} {time}:\n {pack_str}\n")
+            print('ny packlista ',f"{beskrivning} skapades {given_year}-{month_given}-{given_day} {time}:\n{pack_str}")
+            os.system("cls||clear")
             
             for i in pack.object_list:
-                f.write(pack_str)
                 if i == len(pack.object_list): 
-                    f.write('\n')
-                
-                menu_control= main()    
-                if menu_control == 1:
+                    f.write(f'{pack_str} \n')  
+                    f.close()
+                    
+                    controller()
                     print('skickas tillbaka till meny')
                     os.system("cls||clear")  # Assuming Windows
-                    # Continue (if applicable)
-                elif menu_control == 0:
-                    print('Programmet avslutar ...')
-                    f.close()  # Assuming f is a valid file object
-                    exit()
+                    continue
                 
-    if button == 'i':
-        key_word= "Packlista;"
+    elif button == "":
+        key_word= "Packlista; "
         with open(FIL, "r") as f:
             r = f.readlines()
             matching_packlists=[rad for rad in r if key_word in rad]
@@ -91,32 +94,37 @@ while True:
             print("Packlistor som matchar:")
             for index, packlist in enumerate(matching_packlists, start=1):
                 print(f"{index}. {packlist}")
+            try:
+                val=int(input("Välj en packlista med nummer: "))
+                
+                if 0 <= val <= len(r):        
+                    valt_pack=matching_packlists[val - 1]
+                    item_index=r.index(valt_pack) + 1
+                    nuvarande_lista=r[item_index].strip()  
+                    print(nuvarande_lista)
+                    
+            except IndexError:
+                print('ogiltigt input')
+            except ValueError:
+                print('Input lagrat är inte en siffra')
             
-            val=int(input("Välj en packlista med nummer: "))
-            if 0 <= val <= len(r):        
-                valt_pack=matching_packlists[val - 1]
-                item_index=r.index(valt_pack) + 1
-                nuvarande_lista=r[item_index].strip()  
-                print(nuvarande_lista)
-                menu_control = main () 
-                if menu_control == 1:
-                    print('skickas tillbaka till meny')
-                    os.system("cls||clear")  # Assuming Windows
-                    # Continue (if applicable)
-                if menu_control == 0:
-                    print('Programmet avslutar ...')
-                    f.close()  # Assuming f is a valid file object
-                    exit()
+            finally: 
+                f.close()
+                controller()
+                print('skickas tillbaka till meny')
+                os.system("cls||clear")  # Assuming Windows
+                continue 
         else:
             print('Ingen packlista hittades.')
+            
                 
     if button == 's':
         sökord=input("Ange ett sökord för att hitta specifika packlistor: ")
-        PACKLISTAN=f"Packlista; {sökord}"
+        packlista=f"Packlista; {sökord.capitalize()}"
 
         with open(FIL, "r") as f:
             r = f.readlines()
-            matching_packlists=[rad for rad in r if PACKLISTAN in line]
+            matching_packlists=[rad for rad in r if packlista in rad]
 
         if matching_packlists:
             print("Packlistor som matchar:")
@@ -131,44 +139,38 @@ while True:
                 packlista_index=r.index(valt_pack)
                 item_index=packlista_index + 1
                 
-                if 0<= item_index <= len(r): # Se till att nästa rad finns (där packlistans objekt är listade)
+                if 0<= item_index <= len(r): # Se till att nästa rad finns (där packlistas objekt är listade)
                     nuvarande_lista=r[item_index].strip()  # Befintligt innehåll
                     
-                    ny_innehål=input("Vad vill du lägga till i packlistan? ")
+                    ny_innehål=input("Vad vill du lägga till i packlista? ")
                     ny_lista=f"{nuvarande_lista}, {ny_innehål}"    
                     
-                    with open(FIL, "w") as f:
+                    with open(FIL, "w",encoding=ENCODING) as f:
                         
                         for idx, line in enumerate(r):      
                             if idx == item_index: #idx är siffror        
-                                # Uppdatera raden efter packlista dvs där föremål för packlistan befinner sig
+                                # Uppdatera raden efter packlista dvs där föremål för packlista befinner sig
                                 f.write(f"{ny_lista}\n")      
                                 print(f'Det ny objekt {ny_innehål} skrevs in.')
-                                print(f'Ny packlistan ser ut så här: {ny_lista}') #lägger ny del av text         
+                                print(f'Ny packlista ser ut så här: {ny_lista}') #lägger ny del av text         
+
                             else:
                                 f.write(line) #Skriver om resten av texten
                                 if  line == len(r): 
-                                    menu_control= main()
-                                    if menu_control == 1:
-                                        print('skickas tillbaka till meny')
-                                        os.system("cls||clear")  # Assuming Windows
-                                        # Continue (if applicable)
-                                    elif menu_control == 0:
-                                        print('Programmet avslutar ...')
-                                        f.close()  # Assuming f is a valid file object
-                                        exit()
-                print("Ogiltigt knappt.")
-        
+                                    os.system("cls||clear")
+                                    f.close()
+                                    controller()
+                                    print('skickas tillbaka till meny')
+                                    os.system("cls||clear")  # Assuming Windows
+                                    continue
+            else:    
+                print("Ogiltigt knappt.")  
         else:
             print("Inga packlistor hittades som matchar sökordet. (Kanske Caps Lock)")
             continue
-
-    if button == 'x':
-        
-        print('Programmet avslutar ... ')
-        f.close()  
-        exit()
     
+    if button == 'x':
+        sys.exit('Programmet avslutar ... ')
+
     else:
-        print('*FEL INPUT*\n')
         continue
