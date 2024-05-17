@@ -1,0 +1,221 @@
+import os # den här modulen används för att kunna rensa terminalen med os.system("cls||clear")
+from datetime import datetime as dt # den här modulen hanterar data för att kunna räkna ut dagar kvar och datum
+
+# De variabler är här och är skrivna med stor bokstav för att de är konstanta.
+# "utf-8" används senare för att ladda filer med utf-8 så att svenska symboler kan läsas utan fel
+# sökvägen till packlistan
+
+class Packlist:
+    def __init__(self, name, date, items):
+        self.name = name
+        self.date = date
+        self.items = sorted(items)
+
+def seconds_to_hours_and_minutes(total_seconds):
+    """Den här funktionen konverterar sekunder till dagar, timmar och minuter kvar.
+
+    Args:
+        total_seconds (int): sekunder som ska konverteras
+
+    Returns:
+        tuple(int): returner en tuple med tre int tal som är (dagar, timmar, minuter)
+    """
+    days = total_seconds // (24 * 3600)
+    total_seconds = total_seconds % (24 * 3600)
+    hours = total_seconds // 3600
+    total_seconds %= 3600
+    minutes = total_seconds // 60
+    return (int(days), int(hours), int(minutes))
+
+def load_packlists(path):
+    """Den här funktionen laddar packlistor som finns i "path" sökvägen
+
+    Args:
+        path (str): Sökvägen till packlistor filen
+
+    Returns:
+        list[Packlist]: Lista med alla packlistor
+    """
+    packlists_list = []
+    try: # försöker öppna filen i sökvägen
+        with open(path, "r", encoding="utf-8") as file:
+            packlists = file.readlines()
+        packlists = [i.strip() for i in packlists] # laddar varje linje i txt-filen och använder strip() för att ta bort whitespaces
+        for i in range(0, len(packlists), 2): # går genom varje linje från txt-filen och hoppar över 2 eftersom hur data sparas
+            packlist_name = packlists[i].split(' ')[0] # sparar packlistans namn
+            packlist_date = dt.fromisoformat(f"{packlists[i].split(' ')[1]} {packlists[i].split(' ')[2]}") # sparar packlistans datum
+            packlists_items = packlists[i+1].split(', ') # sparar packlistans objekter som ska packas
+            new_packlist = Packlist(packlist_name, packlist_date, packlists_items) # Sparar packlista som en objekt
+            packlists_list.append(new_packlist)
+    except FileNotFoundError: # om filen inte finns så skapas en ny fil
+        with open(path, "w", encoding= "utf-8") as file: 
+            pass # använder with här så att open funktionen används medans pass används så att open funktionen stängs automatisk och det är för att det inte stannar i minnet
+
+    return packlists_list
+
+def save_packlists(path, packlists):
+    """Den här funktioner sparar packlistor i rätt format och på rätt sätt.
+
+    Args:
+        path (str): Sökvägen till packlistor filen
+        packlists (list[Packlist]): Listan med alla packlistor
+    """
+    save_strings = [] # lista för varje rad som kommer sparas i txt-filen
+    for packlist in packlists: # går genom varje packlista.
+        packlist.items = sorted(packlist.items) # sorterar varje objekt så att det är i alfabetisk order
+        date = dt.isoformat(packlist.date).split("T") # datum konverteras till string
+        items_str = "" # string där varje objekt från packlistan kommer att läggas till
+        for j, k in enumerate(packlist.items): # går genom varje objekt
+            if not j == len(packlist.items)-1: # om inte objekten är sist
+                items_str += f'{k}, '
+            else: # om objekten är sist så sparas det utan komma tecken så att det ser bättre ut i txt-filen
+                items_str += k
+        backslash = "\n" if packlists.index(packlist) != 0 else "" # om listan är först så läggs ingen \n så att första raden är inte tomt i txt-filen
+        new_line = f"{backslash}{packlist.name} {date[0]} {date[1]}\n{items_str}"
+        save_strings.append(new_line)
+
+    with open(path, "w") as file:
+        file.write(''.join(save_strings)) # lägger ihop varje string i listan och sparar i txt-filen
+
+def new_packlist(packlists):
+    """Funktionen som ställer frågor om hur den nya packlistan ska heta och när den ska vara klar och vad ska ligga inom det.
+
+    Args:
+        packlists (list[Packlist]): Listan med packlistor
+
+    Returns:
+        list[Packlist]: Returnerar listan med den nya packlistan om ingen error uppstår annars så returnerar det den gamla listan alltså det som anges i packlists argumenten
+    """
+    # frågor om hur packlistan ska se ut.
+    name = input("Vad ska din packlista heta?: ")
+    date = input("Vilken datum ska allt vara packad? (YYYY-MM-DD): ")
+    time = input("Vilken tid ska det var packat (HH:MM): ")
+    items = []
+    while True: # i den här loopen kollar det om man skriver rätt siffra, det är i en loop så att man behöver inte går allt om
+        try:
+            item_count = int(input("Hur många saker ska du packa?: "))
+            break
+        except ValueError:
+            print("Du har valt fel siffra försök igen.")
+            
+    for i in range(item_count): # om man valde t.ex. 3 objekt så kommer det fråga 3 gånger vad objekten som du vill lägga till heter.
+        new_item = input(f"{i+1}. Skriv namn på din föremål: ")
+        items.append(new_item.capitalize())
+
+    try: # testar om man kan spara utan ValueError, den kan uppstå om man skriver fel datum.
+        new_packlist = Packlist(name, dt.fromisoformat(f"{date} {time}"), sorted(items))
+        new_packlists = [*packlists, new_packlist]
+        print(f"Skapade {new_packlist.name} packlistan!")
+        input("Tryck enter för att fortsätta")
+        return new_packlists # returnerar packlistor med den nya packlistor
+    except ValueError:
+        print("Du skrev in fel datum eller tid, kunde inte skapa packlistan")
+        input("Tryck enter för att fortsätta")
+        return packlists # eftersom det blev en error så returner det gamla packlistor utan den nya.
+
+def show_packlists(packlists):
+    """Den här funktionen skriver ut packlistor och sen man får välja vilken packlista som ska visas och skriver ut alla objekt i packlistan.
+
+    Args:
+        packlists (list[Packlist]): Listan med packlistor
+
+    Returns:
+        int, None: Returnerar vilken packlista man valde att kolla på eftersom denna siffran används i en annan funktion, om det finns inga packlistor så returneras None
+    """
+    if not len(packlists) < 1: # kollar om det finns mer än 1 objekt i listan för att kolla om det finns ens packlistor.
+        os.system("cls||clear") # rensar terminalen "cls||clear" används för att det ska kunna funka på linux, mac och windows "||" betyder "or" så det väljer det som funkar
+        print("Välj listan som du vill se. (skriv listans nummer)")
+        for i, packlist in enumerate(packlists): # skriver ut listor med nummer bredvid de så att man kan välja en med siffra istället för att skriva hela namnet
+            packlist_seconds_left = (packlist.date - dt.now()).total_seconds()
+            packlist_time_left = seconds_to_hours_and_minutes(packlist_seconds_left)
+            print(f"{i+1}. {packlist.name} ({packlist_time_left[0]} dagar kvar)") # i+1 används så att det skrivs ut från 1 och inte 0, bättre design för användaren
+
+        while True: # kollar om användarens input är int och inte nåt annat ligger i loop så att man behöver inte börja om med funktionen
+            try:
+                chosen_list = int(input(">"))
+                break
+            except ValueError:
+                input("Fel input... (tryck enter för att fortsätta)")
+
+        os.system("cls||clear")
+        current_list = packlists[chosen_list-1] # -1 används för att tidigare i koden skrivs alla listor med index+1 då användaren kommer skriva en siffra högre än det rikitga index
+        print(f"Packlista: {current_list.name}")
+        total_seconds_left = (current_list.date - dt.now()).total_seconds()
+        time_left = seconds_to_hours_and_minutes(total_seconds_left) # tid kvar tills listan ska vara klar.
+        
+        print(f"Packlista ska vara packad inom {time_left[0]} dagar, {time_left[1]} timmar och {time_left[2]} minuter")
+        for i, item in enumerate(current_list.items): # skriver ut objekt från listan.
+            print(f"{i+1}. {item}")
+
+        return current_list
+    else: # om inga packlistor finns.
+        print("Det finns inga packlistor.")
+        return None
+
+def add_item_to_packlist(packlists):
+    """Funktionen för att lägga till objekt till packlistan
+
+    Args:
+        packlists (list[Packlist]): Listan med packlistor
+    """
+    current_list = show_packlists(packlists) # använder tidigare funktion för att veta om det finns packlistor eller inte
+    if current_list: # om det finns packlistor alltså current_list blir inte till None så fortsätter funktionen
+        print(current_list)
+        while True: # loopen som kollar om objekten är whitespace, man vill inte att objekt utan namn läggs till
+            new_item = input("Vad vill du lägga till: ")
+            if new_item.isspace(): # kollar om stringen är whitespace
+                print("Din objekt måste ha ett namn!")
+            else:
+                break
+
+        current_list.items.append(new_item) # lägger till nya objekten
+        current_list.items = sorted(current_list.items) # sorterar objekt med alfabetisk order
+    else: # om listan är tomt så avslutas funktionen med det här
+        input("Tryck enter för att fortsätta")
+
+def remove_item_from_packlist(packlists):
+    current_list = show_packlists(packlists)
+    if current_list:
+        print(current_list)
+        while True:
+            try:
+                chosen_item = int(input("Vilken objekt vill du ta bort: "))
+                current_list.items.pop(chosen_item-1)
+                break
+            except ValueError:
+                print("Fel input tryck enter för att fortsätta")
+            
+def main():
+    """Main funktionen som laddar packlistor och sparar de varje loop omgång och hanterar menyn
+    """
+    packlists = load_packlists("packlistorB.txt") # laddar packlistor med funktionen
+    while True: # main meny loopen
+        os.system("cls||clear") # rensar terminalen
+        print('---> N Ny packlista')
+        print('---> I Visa innehål i lista')
+        print('---> S Lägg till en sak i en lista')
+        print('---> D Ta bort en sak från en lista')
+        print('---> X Avsluta.')
+        user_input = input(">") # tar user input
+        match user_input.lower(): # match case som kollar för varje input
+            case "n":
+                packlists = new_packlist(packlists)
+            case "":
+                show_packlists(packlists)
+                input("Tryck enter för att fortsätta")
+            case "s":
+                add_item_to_packlist(packlists)
+            case "d":
+                remove_item_from_packlist(packlists)
+            case "x":
+                save_packlists("packlistorB.txt", packlists) # sparar packlistor med save_packlists funktionen
+                input("Program avslutas nu... (tryck en knapp för att fortsätta)")
+                break
+            case _: # in ingen av cases är rätt så används denna default case
+                input("Fel input... (tryck enter för att fortsätta)")
+                continue # börjar om loopen
+                
+        save_packlists("packlistorB.txt", packlists) # sparar packlistorna
+
+if __name__ == "__main__": # kollar om __name__ är __main__ så att koden kan bara köras ifrån detta filen direkt och inte bli kallad från en annan.
+    main() # startar main funktionen.
