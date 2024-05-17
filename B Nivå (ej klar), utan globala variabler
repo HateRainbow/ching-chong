@@ -2,8 +2,8 @@ import os # den här modulen används för att kunna rensa terminalen med os.sys
 from datetime import datetime as dt # den här modulen hanterar data för att kunna räkna ut dagar kvar och datum
 
 # De variabler är här och är skrivna med stor bokstav för att de är konstanta.
-# "utf-8" används senare för att ladda filer med utf-8 så att svenska symboler kan läsas utan fel
-# sökvägen till packlistan
+# encoding används senare för att ladda filer med utf-8 så att svenska symboler kan läsas utan fel "utf-8"
+# sökvägen till packlistan = "packlistorB.txt"
 
 class Packlist:
     def __init__(self, name, date, items):
@@ -38,7 +38,7 @@ def load_packlists(path):
     """
     packlists_list = []
     try: # försöker öppna filen i sökvägen
-        with open(path, "r", encoding="utf-8") as file:
+        with open(path, "r", encoding = "utf-8") as file:
             packlists = file.readlines()
         packlists = [i.strip() for i in packlists] # laddar varje linje i txt-filen och använder strip() för att ta bort whitespaces
         for i in range(0, len(packlists), 2): # går genom varje linje från txt-filen och hoppar över 2 eftersom hur data sparas
@@ -48,7 +48,7 @@ def load_packlists(path):
             new_packlist = Packlist(packlist_name, packlist_date, packlists_items) # Sparar packlista som en objekt
             packlists_list.append(new_packlist)
     except FileNotFoundError: # om filen inte finns så skapas en ny fil
-        with open(path, "w", encoding= "utf-8") as file: 
+        with open(path, "w", encoding="utf-8") as file: 
             pass # använder with här så att open funktionen används medans pass används så att open funktionen stängs automatisk och det är för att det inte stannar i minnet
 
     return packlists_list
@@ -188,7 +188,7 @@ def remove_item_from_packlist(packlists):
 def main():
     """Main funktionen som laddar packlistor och sparar de varje loop omgång och hanterar menyn
     """
-    packlists = load_packlists("packlistorB.txt") # laddar packlistor med funktionen
+    packlists = load_packlists("packlistorB.txt" ) # laddar packlistor med funktionen
     while True: # main meny loopen
         os.system("cls||clear") # rensar terminalen
         print('---> N Ny packlista')
@@ -200,7 +200,7 @@ def main():
         match user_input.lower(): # match case som kollar för varje input
             case "n":
                 packlists = new_packlist(packlists)
-            case "":
+            case "i":
                 show_packlists(packlists)
                 input("Tryck enter för att fortsätta")
             case "s":
@@ -208,14 +208,14 @@ def main():
             case "d":
                 remove_item_from_packlist(packlists)
             case "x":
-                save_packlists("packlistorB.txt", packlists) # sparar packlistor med save_packlists funktionen
+                save_packlists("packlistorB.txt" , packlists) # sparar packlistor med save_packlists funktionen
                 input("Program avslutas nu... (tryck en knapp för att fortsätta)")
                 break
             case _: # in ingen av cases är rätt så används denna default case
                 input("Fel input... (tryck enter för att fortsätta)")
                 continue # börjar om loopen
                 
-        save_packlists("packlistorB.txt", packlists) # sparar packlistorna
+        save_packlists("packlistorB.txt" , packlists) # sparar packlistorna
 
 if __name__ == "__main__": # kollar om __name__ är __main__ så att koden kan bara köras ifrån detta filen direkt och inte bli kallad från en annan.
     main() # startar main funktionen.
