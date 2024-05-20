@@ -39,10 +39,9 @@ while True:
     pack=Packlistor()
     
     FIL="packlistorC.txt"
-    ENCODING="UTF-8"
-    
+    ENCODING="utf-8"
+    print('tryck på vilken knapp som helst för visa listor')
     print('---> N Ny packlista')
-    print('---> Enter Visa innehål i lista')
     print('---> S lägg till en sak i en lista')
     print('---> X Avsluta.')
 
@@ -84,47 +83,12 @@ while True:
                     os.system("cls||clear")  # Assuming Windows
                     continue
                 
-    elif button == "":
-        key_word= "Packlista; "
-        with open(FIL, "r") as f:
-            r = f.readlines()
-            matching_packlists=[rad for rad in r if key_word in rad]
-        
-        if matching_packlists: #om det finns innehål kommer det att gå vidare
-            print("Packlistor som matchar:")
-            for index, packlist in enumerate(matching_packlists, start=1):
-                print(f"{index}. {packlist}")
-            try:
-                val=int(input("Välj en packlista med nummer: "))
-                
-                if 0 <= val <= len(r):        
-                    valt_pack=matching_packlists[val - 1]
-                    item_index=r.index(valt_pack) + 1
-                    nuvarande_lista=r[item_index].strip()  
-                    print(nuvarande_lista)
-                    
-            except IndexError:
-                print('ogiltigt input')
-            except ValueError:
-                print('Input lagrat är inte en siffra')
-            
-            finally: 
-                f.close()
-                controller()
-                print('skickas tillbaka till meny')
-                os.system("cls||clear")  # Assuming Windows
-                continue 
-        else:
-            print('Ingen packlista hittades.')
-            
-                
     if button == 's':
-        sökord=input("Ange ett sökord för att hitta specifika packlistor: ")
-        packlista=f"Packlista; {sökord.capitalize()}"
+        sökord=input("Ange en datum: ")
 
         with open(FIL, "r") as f:
             r = f.readlines()
-            matching_packlists=[rad for rad in r if packlista in rad]
+            matching_packlists=[rad for rad in r if sökord in rad]
 
         if matching_packlists:
             print("Packlistor som matchar:")
@@ -173,4 +137,34 @@ while True:
         sys.exit('Programmet avslutar ... ')
 
     else:
-        continue
+        key_word= "Packlista; "
+        with open(FIL, "r") as f:
+            r = f.readlines()
+            matching_packlists=[rad for rad in r if key_word in rad]
+        
+        if matching_packlists: #om det finns innehål kommer det att gå vidare
+            print("Packlistor som matchar:")
+            for index, packlist in enumerate(matching_packlists, start=1):
+                print(f"{index}. {packlist}")
+            try:
+                val=int(input("Välj en packlista med nummer: "))
+                
+                if 0 <= val <= len(r):        
+                    valt_pack=matching_packlists[val - 1]
+                    item_index=r.index(valt_pack) + 1
+                    nuvarande_lista=r[item_index].strip()  
+                    print(nuvarande_lista)
+                    
+            except IndexError:
+                print('ogiltigt input')
+            except ValueError:
+                print('Input lagrat är inte en siffra')
+            
+            finally: 
+                f.close()
+                controller()
+                print('skickas tillbaka till meny')
+                os.system("cls||clear")  # Assuming Windows
+                continue 
+        else:
+            print('Ingen packlista hittades.')
