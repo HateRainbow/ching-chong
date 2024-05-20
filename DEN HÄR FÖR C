@@ -37,7 +37,7 @@ print('Text fil hitaddes: packlistorC.txt\n')
 #upprepar meny tills lagrad giltig input
 while True:  
     pack=Packlistor()
-    
+    key_word= "Packlista; "
     FIL="packlistorC.txt"
     ENCODING="utf-8"
     print('tryck på vilken knapp som helst för visa listor')
@@ -68,7 +68,7 @@ while True:
         given_year = int(input('Vilken år (skriv i ÅÅÅÅ)?'))
         print(' ')
         
-        with open(FIL, 'a',encoding=ENCODING) as f:
+        with open(FIL, 'a', encoding=ENCODING) as f:
             f.write(f"{beskrivning} {given_year}-{month_given}-{given_day} {time}:\n {pack_str}\n")
             print('ny packlista ',f"{beskrivning} skapades {given_year}-{month_given}-{given_day} {time}:\n{pack_str}")
             os.system("cls||clear")
@@ -85,11 +85,13 @@ while True:
                 
     if button == 's':
         sökord=input("Ange en datum: ")
-
         with open(FIL, "r") as f:
             r = f.readlines()
             matching_packlists=[rad for rad in r if sökord in rad]
-
+        
+        if sökord == "":
+            matching_packlists=[rad for rad in r if key_word in rad]
+        
         if matching_packlists:
             print("Packlistor som matchar:")
             for idx, packlist in enumerate(matching_packlists, start=1):
@@ -100,8 +102,7 @@ while True:
             if 1 <= val <= len(matching_packlists):
                 
                 valt_pack=matching_packlists[val - 1]
-                packlista_index=r.index(valt_pack)
-                item_index=packlista_index + 1
+                item_index=r.index(valt_pack) + 1
                 
                 if 0<= item_index <= len(r): # Se till att nästa rad finns (där packlistas objekt är listade)
                     nuvarande_lista=r[item_index].strip()  # Befintligt innehåll
@@ -137,7 +138,6 @@ while True:
         sys.exit('Programmet avslutar ... ')
 
     else:
-        key_word= "Packlista; "
         with open(FIL, "r") as f:
             r = f.readlines()
             matching_packlists=[rad for rad in r if key_word in rad]
@@ -164,7 +164,7 @@ while True:
                 f.close()
                 controller()
                 print('skickas tillbaka till meny')
-                os.system("cls||clear")  # Assuming Windows
+                os.system("cls||clear")  
                 continue 
         else:
             print('Ingen packlista hittades.')
