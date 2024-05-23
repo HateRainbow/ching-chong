@@ -113,7 +113,7 @@ def new_packlist(packlists):
         input("Tryck enter för att fortsätta")
         return packlists # eftersom det blev en error så returner det gamla packlistor utan den nya.
 
-def show_packlists(packlists, choose=False):
+def show_packlists(packlists, choose=False, choose_by_date=True):
     """Den här funktionen skriver ut packlistor och sen man får välja vilken packlista som ska visas och skriver ut alla objekt i packlistan.
 
     Args:
@@ -124,11 +124,32 @@ def show_packlists(packlists, choose=False):
     """
     if not len(packlists) < 1: # kollar om det finns mer än 1 objekt i listan för att kolla om det finns ens packlistor.
         os.system("cls||clear") # rensar terminalen "cls||clear" används för att det ska kunna funka på linux, mac och windows "||" betyder "or" så det väljer det som funkar
-        print("Välj listan som du vill se. (skriv listans nummer)")
+        if choose_by_date:
+            while True:
+                print("Skriv datum. (YYYY-MM-DD)")
+                date = input()
+                if not len(date) == 0:
+                    try:
+                        date = dt.fromisoformat(date)
+                    except ValueError:
+                        print("Fel Datum Format!")
+                        continue
+                    break
+                else:
+                    choose_by_date = False
+                    break
+        packlists_by_date = []
         for i, packlist in enumerate(packlists): # skriver ut listor med nummer bredvid de så att man kan välja en med siffra istället för att skriva hela namnet
             packlist_seconds_left = (packlist.date - dt.now()).total_seconds()
             packlist_time_left = seconds_to_hours_and_minutes(packlist_seconds_left)
-            print(f"{i+1}. {packlist.name} ({packlist_time_left[0]} dagar kvar)") # i+1 används så att det skrivs ut från 1 och inte 0, bättre design för användaren
+            if choose_by_date and date > packlist.date:
+                packlists_by_date.append(packlist)
+                print(f"{i+1}. {packlist.name} ({packlist_time_left[0]} dagar kvar)") # i+1 används så att det skrivs ut från 1 och inte 0, bättre design för användaren
+            elif not choose_by_date:
+                print(f"{i+1}. {packlist.name} ({packlist_time_left[0]} dagar kvar)")
+        if len(packlists_by_date) < 1 and choose_by_date:
+            print("Det finns inga packlistor!")
+            return None
         if choose:
             while True: # kollar om användarens input är int och inte nåt annat ligger i loop så att man behöver inte börja om med funktionen
                 try:
@@ -160,9 +181,8 @@ def add_item_to_packlist(packlists):
     Args:
         packlists (list[Packlist]): Listan med packlistor
     """
-    current_list = show_packlists(packlists) # använder tidigare funktion för att veta om det finns packlistor eller inte
+    current_list = show_packlists(packlists, True) # använder tidigare funktion för att veta om det finns packlistor eller inte
     if current_list: # om det finns packlistor alltså current_list blir inte till None så fortsätter funktionen
-        print(current_list)
         while True: # loopen som kollar om objekten är whitespace, man vill inte att objekt utan namn läggs till
             new_item = input("Vad vill du lägga till: ")
             if new_item.isspace(): # kollar om stringen är whitespace
@@ -176,7 +196,7 @@ def add_item_to_packlist(packlists):
         input("Tryck enter för att fortsätta")
 
 def remove_item_from_packlist(packlists):
-    current_list = show_packlists(packlists)
+    current_list = show_packlists(packlists, True)
     if current_list:
         print(current_list)
         while True:
