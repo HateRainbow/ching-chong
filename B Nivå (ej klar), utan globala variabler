@@ -38,7 +38,7 @@ def load_packlists(path):
     """
     packlists_list = []
     try: # försöker öppna filen i sökvägen
-        with open(path, "r", encoding = "utf-8") as file:
+        with open(path, "r", encoding="utf-8") as file:
             packlists = file.readlines()
         packlists = [i.strip() for i in packlists] # laddar varje linje i txt-filen och använder strip() för att ta bort whitespaces
         for i in range(0, len(packlists), 2): # går genom varje linje från txt-filen och hoppar över 2 eftersom hur data sparas
@@ -113,7 +113,7 @@ def new_packlist(packlists):
         input("Tryck enter för att fortsätta")
         return packlists # eftersom det blev en error så returner det gamla packlistor utan den nya.
 
-def show_packlists(packlists):
+def show_packlists(packlists, choose=False):
     """Den här funktionen skriver ut packlistor och sen man får välja vilken packlista som ska visas och skriver ut alla objekt i packlistan.
 
     Args:
@@ -129,25 +129,27 @@ def show_packlists(packlists):
             packlist_seconds_left = (packlist.date - dt.now()).total_seconds()
             packlist_time_left = seconds_to_hours_and_minutes(packlist_seconds_left)
             print(f"{i+1}. {packlist.name} ({packlist_time_left[0]} dagar kvar)") # i+1 används så att det skrivs ut från 1 och inte 0, bättre design för användaren
+        if choose:
+            while True: # kollar om användarens input är int och inte nåt annat ligger i loop så att man behöver inte börja om med funktionen
+                try:
+                    chosen_list = int(input(">"))
+                    break
+                except ValueError:
+                    input("Fel input... (tryck enter för att fortsätta)")
 
-        while True: # kollar om användarens input är int och inte nåt annat ligger i loop så att man behöver inte börja om med funktionen
-            try:
-                chosen_list = int(input(">"))
-                break
-            except ValueError:
-                input("Fel input... (tryck enter för att fortsätta)")
+            os.system("cls||clear")
+            current_list = packlists[chosen_list-1] # -1 används för att tidigare i koden skrivs alla listor med index+1 då användaren kommer skriva en siffra högre än det rikitga index
+            print(f"Packlista: {current_list.name}")
+            total_seconds_left = (current_list.date - dt.now()).total_seconds()
+            time_left = seconds_to_hours_and_minutes(total_seconds_left) # tid kvar tills listan ska vara klar.
+            
+            print(f"Packlista ska vara packad inom {time_left[0]} dagar, {time_left[1]} timmar och {time_left[2]} minuter")
+            for i, item in enumerate(current_list.items): # skriver ut objekt från listan.
+                print(f"{i+1}. {item}")
 
-        os.system("cls||clear")
-        current_list = packlists[chosen_list-1] # -1 används för att tidigare i koden skrivs alla listor med index+1 då användaren kommer skriva en siffra högre än det rikitga index
-        print(f"Packlista: {current_list.name}")
-        total_seconds_left = (current_list.date - dt.now()).total_seconds()
-        time_left = seconds_to_hours_and_minutes(total_seconds_left) # tid kvar tills listan ska vara klar.
-        
-        print(f"Packlista ska vara packad inom {time_left[0]} dagar, {time_left[1]} timmar och {time_left[2]} minuter")
-        for i, item in enumerate(current_list.items): # skriver ut objekt från listan.
-            print(f"{i+1}. {item}")
-
-        return current_list
+            return current_list
+        else:
+            input()
     else: # om inga packlistor finns.
         print("Det finns inga packlistor.")
         return None
@@ -189,6 +191,7 @@ def main():
     """Main funktionen som laddar packlistor och sparar de varje loop omgång och hanterar menyn
     """
     packlists = load_packlists("packlistorB.txt" ) # laddar packlistor med funktionen
+    packlists = sorted(packlists, key=lambda packlist: packlist.date)
     while True: # main meny loopen
         os.system("cls||clear") # rensar terminalen
         print('---> N Ny packlista')
@@ -201,7 +204,7 @@ def main():
             case "n":
                 packlists = new_packlist(packlists)
             case "i":
-                show_packlists(packlists)
+                show_packlists(packlists, True)
                 input("Tryck enter för att fortsätta")
             case "s":
                 add_item_to_packlist(packlists)
@@ -212,7 +215,7 @@ def main():
                 input("Program avslutas nu... (tryck en knapp för att fortsätta)")
                 break
             case _: # in ingen av cases är rätt så används denna default case
-                input("Fel input... (tryck enter för att fortsätta)")
+                show_packlists(packlists)
                 continue # börjar om loopen
                 
         save_packlists("packlistorB.txt" , packlists) # sparar packlistorna
