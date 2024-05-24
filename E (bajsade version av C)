@@ -1,0 +1,121 @@
+class Packlistor: 
+    def __init__(self):
+        self.object_list = []
+    def addObject(self, objekt):
+        self.object_list.append(objekt)
+while True:  
+    pack=Packlistor()
+    key_word= "Packlista; "
+    FIL="packlistor.txt"
+    print('tryck på vilken knapp som helst för visa listor')
+    print('---> N Ny packlista')
+    print('---> S lägg till en sak i en lista')
+    print('---> X Avsluta.')
+    button=input('Tryck en av kommando: ').lower() 
+    if button == 'n':
+        beskrivning = 'Packlista; '+ input('Plats och kort beskrivning? ').capitalize()
+        n = int(input('Hur många objekt?'))
+        for i in range(n):
+            föremål = input('Skriv varje enskild föremål och tryck enter: ')
+            pack.addObject(föremål)  
+        pack_str = ', '.join(pack.object_list)  
+        time = input('Vilken tid (HH:MM)? ') 
+        month_given = int(input('Vilken månad (skriv i MM)? '))
+        given_day = int(input('Vilken dag (skriv i DD)? '))
+        given_year = int(input('Vilken år (skriv i ÅÅÅÅ)?'))
+        with open(FIL, 'a',) as f:
+            f.write(f"{beskrivning} {given_year}-{month_given}-{given_day} {time}:\n {pack_str}\n")
+            print('ny packlista ',f"{beskrivning}, att ge {given_year}-{month_given}-{given_day} {time}:\n{pack_str}")
+            for i in pack.object_list:
+                if i == len(pack.object_list): 
+                    f.write(f'{pack_str} \n')  
+                    f.close()  
+                    while True:
+                        controller=int(input('För att gå tillbaka till meny tryck "1" och för stänga tryck "0": '))
+                        if controller not in [1,0]:
+                            print('Fel input')
+                            continue
+                        elif controller == 0:
+                            exit('Programmet avslutar ...')
+                        else:
+                            break
+                    continue   
+    if button == 's':
+        sökord=input("Ange en datum: ")
+        with open(FIL, "r") as f:
+            r = f.readlines()
+            matching_packlists=[rad for rad in r if sökord in rad]
+        if sökord == "":
+            matching_packlists=[rad for rad in r if key_word in rad]
+        if matching_packlists:
+            print("Packlistor som matchar:")
+            for idx, packlist in enumerate(matching_packlists, start=1):
+                print(f"{idx}. {packlist}")
+            val = int(input("Välj en packlista med nummer: "))
+            if 1 <= val <= len(matching_packlists):
+                valt_pack=matching_packlists[val - 1]
+                item_index=r.index(valt_pack) + 1
+                if 0<= item_index <= len(r): 
+                    nuvarande_lista=r[item_index].strip() 
+                    ny_innehål=input("Vad vill du lägga till i packlista? ")
+                    ny_lista=f"{nuvarande_lista}, {ny_innehål}"    
+                    with open(FIL, "w") as f:
+                        for idx, line in enumerate(r):      
+                            if idx == item_index: #idx är siffror        
+                                # Uppdatera raden efter packlista dvs där föremål för packlista befinner sig
+                                f.write(f"{ny_lista}\n")      
+                                print(f'Det ny objekt {ny_innehål} skrevs in.')
+                                print(f'Ny packlista ser ut så här: {ny_lista}') #lägger ny del av text         
+                            else:
+                                f.write(line) #Skriver om resten av texten
+                                if  line == len(r): 
+                                    
+                                    f.close()
+                                    while True:
+                                        controller=int(input('För att gå tillbaka till meny tryck "1" och för stänga tryck "0": '))
+                                        if controller not in [1,0]:
+                                            print('Fel input')
+                                            continue
+                                        elif controller == 0:
+                                            exit('Programmet avslutar ...')
+                                        else:
+                                            break
+                                    continue    
+        else:
+            print("Inga packlistor hittades som matchar sökordet. (Kanske Caps Lock)")
+            continue
+    if button == 'x':
+        exit('Programmet avslutar ... ')
+    else:
+        with open(FIL, "r") as f:
+            r = f.readlines()
+            matching_packlists=[rad for rad in r if key_word in rad]
+        if matching_packlists: #om det finns innehål kommer det att gå vidare
+            print("Packlistor som matchar:")
+            for index, packlist in enumerate(matching_packlists, start=1):
+                print(f"{index}. {packlist}")
+            try:
+                val=int(input("Välj en packlista med nummer: "))
+                if 0 <= val <= len(r):        
+                    valt_pack=matching_packlists[val - 1]
+                    item_index=r.index(valt_pack) + 1
+                    nuvarande_lista=r[item_index].strip()  
+                    print(nuvarande_lista)    
+            except IndexError:
+                print('ogiltigt input')
+            except ValueError:
+                print('Input lagrat är inte en siffra')
+            finally: 
+                f.close()
+                while True:
+                    controller=int(input('För att gå tillbaka till meny tryck "1" och för stänga tryck "0": '))
+                    if controller not in [1,0]:
+                        print('Fel input')
+                        continue
+                    elif controller == 0:
+                        exit('Programmet avslutar ...')
+                    else:
+                        break
+                continue
+        else:
+            print('Ingen packlista hittades.')
