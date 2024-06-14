@@ -1,0 +1,217 @@
+#Ibrahim Mustafa DD1310 Grunduppgift #124-Packlistor för resor
+
+import os # stackoverflow.com/questions/2084508/clear-the-terminal-in-python/2084628#2084628
+
+from datetime import datetime #Modulimporteringar
+# stackoverflow.com/questions/19480028/attributeerror-datetime-module-has-no-attribute-strptime
+
+"""Klass för hantering av själva föremålen i packlistor
+    Parametrar:Namn, datum och föremål
+    Returvärden:Inga"""
+
+class Packlista:
+    def __init__(self, namn, datum, föremål=None):
+        self.namn = namn
+        self.datum = datum
+        self.föremål = föremål if föremål is not None else [] # stackoverflow.com/questions/15193017/return-tuple-of-list-in-recursion-function
+
+    """Denna metod representerar och returnerar packlistan som en sträng
+        Parametrar:Inga
+        Returvärden: Packlista som sträng"""
+    
+    def __str__(self):
+        return f"Packlista '{self.namn}' för {self.datum} med föremål: {', '.join(self.föremål)}"
+
+    """Detta är en funktion av klassen och ska göra så att föremål tas bort
+        Parametrar:Föremål
+        Returvärden: Inga"""
+    
+    def ta_bort_föremål(self, föremål):
+        if föremål in self.föremål:
+            self.föremål.remove(föremål)
+            print(f"Föremålet '{föremål}' har tagits bort")
+        else:
+            print(f"Detta föremål '{föremål}' finns inte. Försök igen")
+
+    def lägg_till_föremål(self, föremål):
+        if föremål:
+            self.föremål.append(föremål)
+            print(f"Föremålet '{föremål}' har blivit tillagd")
+        else:
+            print("Du kan inte lägga till detta föremål") # Visar felmeddelande om det är tom sträng
+
+        os.system("cls||clear")  # Rensar terminal för Windows
+        # stackoverflow.com/questions/2084508/clear-the-terminal-in-python/2084628#2084628
+
+"""Det här är klassen för hantering av textfil och packlistor och innehåller funktioner gällande dessa
+    Parametrar: Filnamnet
+     Returvärden: Inga """
+
+class Packlistahantering:
+    def __init__(self, filnamn="textfil.txt"):
+        self.packlistor = self.läs_in_från_fil(filnamn)
+        self.filnamn = filnamn
+
+    """Funktion för huvudmenyn alltså den hanterar menyval
+        Parametrar: Self dvs Basparametern
+        Returvärden:Returnerar inget"""
+    
+    def huvudmeny(self):
+        while True:
+            print("Hej och välkommen till programmet som hanterar packlistor för resor!")
+            print("---> N Ny packlista")
+            print("---> I Visa innehåll i lista")
+            print("---> S Lägg till sak i lista")
+            print("---> A Visa alla kommande listor")
+            print("---> X Avsluta")
+            val = input("Välj alternativ: ").strip().upper()
+
+            if val == "N":
+                self.skapa_packlista()
+            elif val == "I":
+                namn = input("Ange namn eller del av namn på packlistan: ").strip()
+                self.visa_packlista(namn)
+            elif val == "S":
+                namn = input("Ange namn på packlistan för att lägga till föremål: ").strip()
+                self.lägg_till_föremål_packlista(namn)
+            elif val == "A":
+                datum = input("Ange datum (ÅÅÅÅ-MM-DD) eller lämna blankt för att visa alla: ").strip()
+                self.visa_alla_packlistor(datum)
+            elif val == "X":
+                self.spara_packlistor_till_fil()
+                print("Programmet avslutas...")
+                break
+            else:
+                print("Felaktigt val, försök igen")
+    
+    """Det här är funktionen för att visa alla packlistor när man kör koden
+        Parametrar: Datum
+        Returvärden:Inga """
+    
+    def visa_alla_packlistor(self, datum=""):
+        try:
+            datum = datetime.strptime(datum, "%Y-%m-%d") if datum else None # stackoverflow.com/questions/19473185/what-is-a-none-value
+        except ValueError: 
+            print("Felaktigt datumformat. Försök igen.")
+            return
+        # stackoverflow.com/questions/19480028/attributeerror-datetime-module-has-no-attribute-strptime
+        # stackoverflow.com/questions/15193017/return-tuple-of-list-in-recursion-function
+        filtrerade_listor = [pl for pl in self.packlistor if not datum or datetime.strptime(pl.datum.strip(), "%Y-%m-%d") >= datum]
+        if not filtrerade_listor: 
+            print("Inga packlistor att visa")
+            return
+
+        # stackoverflow.com/questions/3766633/how-to-sort-with-lambda-in-python
+        filtrerade_listor.sort(key=lambda pl: pl.datum) #Specifierar sortering av attribut
+        for lista in filtrerade_listor:
+            print(f"Namn: {lista.namn}, Datum: {lista.datum}, Föremål: {', '.join(lista.föremål)}")
+    
+    """Funktion för att skapa packlista och nämna den samt lägga in datum och föremål
+        Parametrar:Inga
+        Returvärden:Inga"""
+
+    def skapa_packlista(self):
+        namn = input("Vad ska packlistan heta? ").strip()
+        datum = input("Vilket datum blir resan? (Format ÅÅÅÅ-MM-DD): ").strip()
+        try:
+            datetime.strptime(datum, "%Y-%m-%d") #Hjälper med felhantering av datumformat
+        except ValueError:
+        # stackoverflow.com/questions/19480028/attributeerror-datetime-module-has-no-attribute-strptime    
+            print("Felaktigt datumformat. Försök igen.")
+            return
+        
+        #Denna del beskriver hur packlistans format kommer att se ut
+        föremål = input("Vad för föremål ska läggas in? (Separera med semikolon): ").strip().split(";")
+        föremål = [f.strip() for f in föremål if f.strip()] # stackoverflow.com/questions/13013734/string-strip-in-python
+        ny_packlista = Packlista(namn, datum, föremål)
+        self.packlistor.append(ny_packlista)
+        print(f"En ny packlista '{namn}' har skapats")
+
+    """Detta är en definierad funktion för att lägga till saker till packlistor
+        Parametrar:Namnet
+        Returvärden: Inga"""
+    
+    def lägg_till_föremål_packlista(self, namn):
+        #lower() och strip() från kursboken sida 356
+        matching_lists = [pl for pl in self.packlistor if namn.lower() in pl.namn.lower()] # stackoverflow.com/questions/13013734/string-strip-in-python
+        if not matching_lists:
+            print(f"Ingen packlista med namm '{namn}' hittades.")
+            return
+        if len(matching_lists) == 1:
+            packlista = matching_lists[0]
+        else:
+            print("Flera packlistor hittades:")
+            for i, pl in enumerate(matching_lists): # realpython.com/python-enumerate/
+                print(f"{i+1}: {pl.namn}, Datum: {pl.datum}")
+            val = input("Välj en packlista genom att ange dess nummer: ").strip()
+            try:
+                packlista = matching_lists[int(val)-1]
+            except (IndexError, ValueError):
+                print("Felaktigt val, försök igen.")
+                return
+        föremål = input(f"Ange föremål att lägga till i '{packlista.namn}': ").strip()
+        packlista.lägg_till_föremål(föremål)
+
+    """Funktionen visar alla packlistor och följer en typ av felhantering med try sats så att
+        det går smidigt med att söka packlistor
+        Parametrar:Namnet på packlistan
+        Returvärden:Inga"""
+                                    #Kursboken sida 356
+    def visa_packlista(self, namn): # stackoverflow.com/questions/13013734/string-strip-in-python
+        matching_lists = [pl for pl in self.packlistor if namn.lower() in pl.namn.lower()]
+        if not matching_lists:
+            print(f"Ingen packlista med namnet '{namn}' hittades.")
+            return
+        if len(matching_lists) == 1:
+            packlista = matching_lists[0]
+        else:
+            print("Flera packlistor hittades:")
+            for i, pl in enumerate(matching_lists): # realpython.com/python-enumerate/
+                print(f"{i+1}: {pl.namn}, Datum: {pl.datum}")
+            val = input("Välj en packlista genom att ange dess nummer: ").strip()
+            try:
+                packlista = matching_lists[int(val)-1]
+            except (IndexError, ValueError):
+                print("Felaktigt val, försök igen.")
+                return
+        print(packlista)
+
+    """Sparar packlistan till filen genom att öppna för skrivning och skapar sedan en
+        for lista som sparas
+        Parametrar:Inga
+        Returvärden:Inga
+        """
+    
+    def spara_packlistor_till_fil(self):
+        with open(self.filnamn, "w", encoding="utf-8") as utfil: #Hjälper med svenska bokstäver
+            for lista in self.packlistor:
+                utfil.write(f"{lista.namn};{lista.datum}\n")
+                utfil.write(";".join(lista.föremål) + "\n")
+    
+    """Denna funktion läser in det som finns i filen och använder en while loop 
+        så att den håller fortfarande på att köras tills den ska avslutas
+        Parametrar: En sträng filnamnet att läsa in packlistor
+        Returvärden: Returnerar packlista objekt"""
+
+    def läs_in_från_fil(self, filnamn):
+        try:
+            with open(filnamn, "r", encoding="utf-8") as infil:
+                packlistor = []
+                while True:
+                    rad = infil.readline().strip()
+                    if not rad:
+                        break
+                    namn, datum = rad.split(";")
+                    datum = datum.strip()
+                    föremål = infil.readline().strip().split(";") # stackoverflow.com/questions/3869357/how-to-accelerate-reads-from-batches-of-files/3869563#3869563
+                    packlistor.append(Packlista(namn, datum, [f.strip() for f in föremål if f.strip()]))
+                return packlistor
+        except FileNotFoundError: #Felhantering så att systemet inte bara kraschar
+            return []
+
+def main():
+    manager = Packlistahantering()
+    manager.huvudmeny()
+
+if __name__ == "__main__":
+    main() #Anropar huvudfunktion
